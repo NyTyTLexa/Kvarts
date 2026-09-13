@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    /* Лист узкий специально: рисунок печатается на ширину 160 мм, и при широком листе
+       подписи уменьшаются до нечитаемых 3-4 пт. */
+    .sheet { width: 1080px; font-size: 15px; }
+    .sheet .comp b { font-size: 15px; }
+    .sheet .comp span { font-size: 13px; display: block; }
+    .g { display: grid; gap: 12px; }
+    .group {
+      border: 1.5px dashed var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fbfdff;
+    }
+    .group h2 { margin: 0 0 10px; font-size: 13px; color: var(--accent); text-align: center; }
+    .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .row5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .comp { min-height: 70px; }
+    .prefix { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="sheet">
+  <h1>Распределённый контур системы</h1>
+  <div class="g">
+    <div class="group">
+      <h2>Клиент и единая точка входа</h2>
+      <div class="row3">
+        <div class="comp"><div class="tab"></div><b>React SPA</b><span>кабинеты ролей, вход OIDC PKCE</span></div>
+        <div class="comp"><div class="tab"></div><b>Gateway YARP :5160</b><span>маршрутизация по префиксам URL, JWT не проверяет</span></div>
+        <div class="comp"><div class="tab"></div><b>Keycloak :8088</b><span>realm procurement, роли в JWT</span></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Вынесенные сервисы: шлюз уводит их префиксы</h2>
+      <div class="row4">
+        <div class="comp"><div class="tab"></div><b>Auth :5167</b><span class="prefix">/api/auth, /api/users</span><span>Keycloak Admin API, своей БД нет</span></div>
+        <div class="comp"><div class="tab"></div><b>Catalog :5168</b><span class="prefix">/api/catalog, /api/products, /api/pricelist, /api/discounts</span><span>схема catalog, Outbox</span></div>
+        <div class="comp"><div class="tab"></div><b>Quoting :5170</b><span class="prefix">/api/specifications</span><span>схема quoting, генератор КП</span></div>
+        <div class="comp"><div class="tab"></div><b>Matching :5174</b><span class="prefix">/api/matching, …/match</span><span>своей схемы нет: TF-IDF по каталогу</span></div>
+        <div class="comp"><div class="tab"></div><b>Commercial :5169</b><span class="prefix">/api/approvals, /api/invoices</span><span>схема commercial, счёт NOC</span></div>
+        <div class="comp"><div class="tab"></div><b>Ordering :5171</b><span class="prefix">/api/orders</span><span>схема ordering, снимок КП</span></div>
+        <div class="comp"><div class="tab"></div><b>Logistics :5172</b><span class="prefix">/api/receipts</span><span>схема logistics, шлюзы 1С и WMS</span></div>
+        <div class="comp"><div class="tab"></div><b>Notifications :5175</b><span class="prefix">/api/notifications</span><span>схема notifications, SMTP</span></div>
+      </div>
+      <div class="row3" style="margin-top:10px">
+        <div class="comp"><div class="tab"></div><b>Retail :5176</b><span class="prefix">/api/retail</span><span>схема retail, витрины B2C</span></div>
+        <div class="comp"><div class="tab"></div><b>Api, модульный монолит :5165</b><span class="prefix">остальной /api (catch-all)</span><span>поиск, проекты, аналитика, журнал аудита</span></div>
+        <div class="comp"><div class="tab"></div><b>Worker</b><span>консьюмер JetStream, индексация каталога</span></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Инфраструктура</h2>
+      <div class="row5">
+        <div class="comp white"><div class="tab"></div><b>PostgreSQL :5433</b><span>схемы public, catalog, quoting, commercial, ordering, logistics, notifications, retail</span></div>
+        <div class="comp white"><div class="tab"></div><b>NATS JetStream :4222</b><span>Outbox, durable-консьюмеры</span></div>
+        <div class="comp white"><div class="tab"></div><b>Meilisearch :7700</b><span>fuzzy-индекс номенклатуры</span></div>
+        <div class="comp white"><div class="tab"></div><b>MailHog :1025 / :8025</b><span>SMTP стенда</span></div>
+        <div class="comp white"><div class="tab"></div><b>Grafana LGTM :3000</b><span>логи, трассы, метрики через OTLP</span></div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Порты указаны для запуска на хосте; в Compose сервисы слушают 8080 и доступны по именам контейнеров. Данные перенесены в схемы сервисов скриптом tools/cutover; копия в public сохранена как откат.</p>
+</div>
+</body>
+</html>

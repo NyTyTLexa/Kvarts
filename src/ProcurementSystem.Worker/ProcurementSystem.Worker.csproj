@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-ProcurementSystem.Worker-7d69df46-c9b4-40c9-8dcb-2dd17d6bd085</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ProcurementSystem.Infrastructure\ProcurementSystem.Infrastructure.csproj" />
+    <ProjectReference Include="..\ProcurementSystem.Contracts\ProcurementSystem.Contracts.csproj" />
+  </ItemGroup>
+</Project>

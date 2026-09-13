@@ -1,0 +1,99 @@
+{
+  "realm": "procurement",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "accessTokenLifespan": 3600,
+  "roles": {
+    "realm": [
+      { "name": "admin",      "description": "Полный доступ, включая администрирование каталога (seed/reset/reindex)" },
+      { "name": "manager",    "description": "РП: ведение каталога, спецификаций, генерация КП, скидки (UC-01..05)" },
+      { "name": "viewer",     "description": "Только чтение (каталог, поиск, КП)" },
+      { "name": "commercial", "description": "Коммерческий блок: согласование КП, расчёт маржинальности (UC-06)" },
+      { "name": "accounting", "description": "Бухгалтерия: фиксация оплаты счёта NOC (UC-08)" },
+      { "name": "warehouse",  "description": "Склад: приёмка товара, отражение в 1С (UC-09)" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "procurement-api",
+      "name": "Procurement API / SPA",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "fullScopeAllowed": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin@procurement.local",
+      "firstName": "Администратор",
+      "lastName": "Системы",
+      "requiredActions": [],
+      "credentials": [{ "type": "password", "value": "admin", "temporary": false }],
+      "realmRoles": ["admin"]
+    },
+    {
+      "username": "manager",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "manager@procurement.local",
+      "firstName": "Закупщик",
+      "lastName": "Отдела",
+      "requiredActions": [],
+      "credentials": [{ "type": "password", "value": "manager", "temporary": false }],
+      "realmRoles": ["manager"]
+    },
+    {
+      "username": "viewer",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "viewer@procurement.local",
+      "firstName": "Наблюдатель",
+      "lastName": "Гость",
+      "requiredActions": [],
+      "credentials": [{ "type": "password", "value": "viewer", "temporary": false }],
+      "realmRoles": ["viewer"]
+    },
+    {
+      "username": "commercial",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "commercial@procurement.local",
+      "firstName": "Коммерческий",
+      "lastName": "Блок",
+      "requiredActions": [],
+      "credentials": [{ "type": "password", "value": "commercial", "temporary": false }],
+      "realmRoles": ["commercial"]
+    },
+    {
+      "username": "accounting",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "accounting@procurement.local",
+      "firstName": "Бухгалтерия",
+      "lastName": "Отдела",
+      "requiredActions": [],
+      "credentials": [{ "type": "password", "value": "accounting", "temporary": false }],
+      "realmRoles": ["accounting"]
+    },
+    {
+      "username": "warehouse",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "warehouse@procurement.local",
+      "firstName": "Складской",
+      "lastName": "Работник",
+      "requiredActions": [],
+      "credentials": [{ "type": "password", "value": "warehouse", "temporary": false }],
+      "realmRoles": ["warehouse"]
+    }
+  ]
+}

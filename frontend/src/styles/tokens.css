@@ -1,0 +1,146 @@
+/* Журнал КП. Темы: data-theme на <html>. */
+:root,
+[data-theme="cabinet"] {
+  --ok: #1a7f46; --ok-bg: #e7f6ec; --ok-fg: #146c3a;
+  --warn: #b45309; --warn-bg: #fff6e5; --warn-fg: #8a4b08;
+  --err: #c62828; --err-bg: #fdecea; --err-fg: #9b1c1c;
+  --info: #1b6aa3; --info-bg: #e7f2fa; --info-fg: #155a8c;
+
+  --bg: #e8edf2;
+  --surface: #ffffff;
+  --surface-2: #f3f6f9;
+  --border: #d5dee7;
+  --border-strong: #9aadc0;
+  --text: #1a2b3c;
+  --text-2: #5a6d7e;
+  --text-3: #8a9aab;
+  --heading: #1a2b3c;
+  --heading-muted: #5a6d7e;
+  --accent: #1b6aa3;
+  --accent-2: #155a8c;
+  --accent-soft: #e7f2fa;
+  --accent-border: #9ec9e4;
+  --ink: #1a2b3c;
+  --cover: #243447;
+  --sidebar-bg: #243447;
+  --sidebar-text: #b8c5d0;
+  --sidebar-text-strong: #ffffff;
+  --sidebar-hover: #2e4258;
+  --sidebar-active-bg: #1b2c3d;
+  --shadow-sm: 0 1px 2px rgba(26, 43, 60, 0.06);
+  --shadow-md: 0 8px 20px rgba(26, 43, 60, 0.10);
+  --accent-ring: rgba(27, 106, 163, .22);
+}
+
+[data-theme="graphite"] {
+  --ok: #2f7d4a; --ok-bg: #e8f4ec; --ok-fg: #246b3d;
+  --warn: #9a6b12; --warn-bg: #f7f0de; --warn-fg: #7a5610;
+  --err: #b42318; --err-bg: #f8eaea; --err-fg: #8f1f18;
+  --info: #4a6278; --info-bg: #e8eef3; --info-fg: #3a4a58;
+
+  --bg: #e6e8eb;
+  --surface: #ffffff;
+  --surface-2: #eef0f2;
+  --border: #d0d4d8;
+  --border-strong: #9aa3ad;
+  --text: #1c2228;
+  --text-2: #5c656e;
+  --text-3: #8b949e;
+  --heading: #1c2228;
+  --heading-muted: #5c656e;
+  --accent: #4a5c6c;
+  --accent-2: #3a4a58;
+  --accent-soft: #e8eef3;
+  --accent-border: #b4c0ca;
+  --ink: #1c2228;
+  --cover: #2a323a;
+  --sidebar-bg: #2a323a;
+  --sidebar-text: #b4bcc4;
+  --sidebar-text-strong: #f4f6f8;
+  --sidebar-hover: #3a444e;
+  --sidebar-active-bg: #1e252c;
+  --shadow-sm: 0 1px 2px rgba(28, 34, 40, 0.06);
+  --shadow-md: 0 8px 20px rgba(28, 34, 40, 0.10);
+  --accent-ring: rgba(74, 92, 108, .22);
+}
+
+[data-theme="forest"] {
+  --ok: #1b7a45; --ok-bg: #e6f5ec; --ok-fg: #146338;
+  --warn: #a16207; --warn-bg: #fef6e0; --warn-fg: #854f06;
+  --err: #b42318; --err-bg: #fdecea; --err-fg: #9b1c1c;
+  --info: #1d6b54; --info-bg: #e6f3ee; --info-fg: #1d3d32;
+
+  --bg: #e7eee9;
+  --surface: #ffffff;
+  --surface-2: #eef4f0;
+  --border: #cfdcd3;
+  --border-strong: #8eae9a;
+  --text: #173028;
+  --text-2: #4d6a5c;
+  --text-3: #7a9486;
+  --heading: #173028;
+  --heading-muted: #4d6a5c;
+  --accent: #2d6a4f;
+  --accent-2: #245c43;
+  --accent-soft: #e4f2ea;
+  --accent-border: #a3c9b4;
+  --ink: #173028;
+  --cover: #1d3d32;
+  --sidebar-bg: #1d3d32;
+  --sidebar-text: #b4cfc2;
+  --sidebar-text-strong: #f3faf6;
+  --sidebar-hover: #2a5244;
+  --sidebar-active-bg: #16332a;
+  --shadow-sm: 0 1px 2px rgba(23, 48, 40, 0.06);
+  --shadow-md: 0 8px 20px rgba(23, 48, 40, 0.10);
+  --accent-ring: rgba(45, 106, 79, .22);
+}
+
+[data-theme="night"] {
+  --ok: #3dba74; --ok-bg: #143322; --ok-fg: #8ee0b0;
+  --warn: #e0b44a; --warn-bg: #3a3014; --warn-fg: #f0d080;
+  --err: #f07167; --err-bg: #3a1818; --err-fg: #f5a8a2;
+  --info: #6cb3e0; --info-bg: #163044; --info-fg: #9dcee8;
+
+  --bg: #101820;
+  --surface: #18222c;
+  --surface-2: #1e2a36;
+  --border: #2c3b4a;
+  --border-strong: #4a5e70;
+  --text: #e8eef3;
+  --text-2: #9aadb8;
+  --text-3: #6d8492;
+  --heading: #e8eef3;
+  --heading-muted: #9aadb8;
+  --accent: #4aa3d4;
+  --accent-2: #3b8bb8;
+  --accent-soft: #1c3344;
+  --accent-border: #3d6a86;
+  --ink: #e8eef3;
+  --cover: #0c141c;
+  --sidebar-bg: #0c141c;
+  --sidebar-text: #8aa0b0;
+  --sidebar-text-strong: #f3f7fa;
+  --sidebar-hover: #1a2834;
+  --sidebar-active-bg: #15202a;
+  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 10px 24px rgba(0, 0, 0, 0.4);
+  --accent-ring: rgba(74, 163, 212, .28);
+}
+
+:root {
+  --radius: 6px;
+  --radius-lg: 8px;
+  --on-accent: #ffffff;
+  --font: 'PT Sans', 'Segoe UI', sans-serif;
+  --font-display: 'PT Sans', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 260ms;
+  --ease: cubic-bezier(.2, 0, 0, 1);
+}
+
+.mono { font-family: var(--font-mono); font-feature-settings: 'tnum' on; }
+.tnum { font-variant-numeric: tabular-nums; }
+.display { font-family: var(--font); font-weight: 700; }

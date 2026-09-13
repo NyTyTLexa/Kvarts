@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5160",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ReverseProxy__Clusters__auth__Destinations__auth-1__Address": "http://localhost:5167/",
+        "ReverseProxy__Clusters__catalog__Destinations__catalog-1__Address": "http://localhost:5168/",
+        "ReverseProxy__Clusters__quoting__Destinations__quoting-1__Address": "http://localhost:5170/",
+        "ReverseProxy__Clusters__commercial__Destinations__commercial-1__Address": "http://localhost:5169/",
+        "ReverseProxy__Clusters__ordering__Destinations__ordering-1__Address": "http://localhost:5171/",
+        "ReverseProxy__Clusters__logistics__Destinations__logistics-1__Address": "http://localhost:5172/",
+        "ReverseProxy__Clusters__notifications__Destinations__notifications-1__Address": "http://localhost:5175/",
+        "ReverseProxy__Clusters__matching__Destinations__matching-1__Address": "http://localhost:5174/",
+        "ReverseProxy__Clusters__retail__Destinations__retail-1__Address": "http://localhost:5176/",
+        "ReverseProxy__Clusters__monolith__Destinations__monolith-1__Address": "http://localhost:5165/"
+      }
+    }
+  }
+}

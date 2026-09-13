@@ -1,0 +1,32 @@
+проверка	статус	деталь
+1a. GET /health	OK	HTTP 200 body={"status":"ok"}
+1b. OpenAPI/Swagger	OK	/openapi/v1.json HTTP 200, 156868 bytes
+tokens	OK	password grant: admin/manager/viewer/commercial/accounting/warehouse
+2a. без токена /api/*	OK	GET /api/products → HTTP 401 
+2b. viewer мутация	OK	POST /api/specifications → HTTP 403 
+seed	OK	каталог уже есть, total=115289, сид пропущен
+3a. спецификация + позиции	OK	spec=a145318f-0c3a-4e04-81e1-d6ab44716533 items=3 skus=['10226', '10265', '10273']
+3b. генерация КП (3 стратегии)	OK	стратегии=[('MinCost', 1273.9), ('MinLeadTime', 11490.0), ('Balanced', 1433.9), ('MlRelevance', 1433.9)]; уникальных сумм среди MinCost/MinLeadTime/Balanced=3
+3c. согласование КБ (create)	OK	approval=8a2d3dec-bd96-426b-93f9-d7a97f7637f0 status=НаСогласованииРП cost=1433.9 sell=1605.968
+4a. decision commercial approved=true	OK	HTTP 204
+4b. автосчёт NOC	OK	id=e6ab1f74-2b4d-4e0b-8fdc-42e465595009 number=NOC-2026-001 createdBy='Система (авто)' (ожидали «Система (авто)»)
+4c. повторный POST /api/invoices идемпотентен	OK	HTTP 201 returned id=e6ab1f74-2b4d-4e0b-8fdc-42e465595009 expected=e6ab1f74-2b4d-4e0b-8fdc-42e465595009 
+5a. accounting → Согласован	OK	HTTP 403 Стадию «Согласован» выставляет только коммерческий блок
+5b. commercial → Согласован	OK	HTTP 204 
+5c. commercial → следующая стадия	OK	HTTP 403 Последующие стадии счёта выставляет бухгалтерия
+5d. accounting → ОжиданиеОплаты	OK	HTTP 204 
+5e. прыжок стадии ОжиданиеОплаты→Оплачено	OK	HTTP 409 Недопустимый переход статуса: «ОжиданиеОплаты» → «Оплачено»
+5f. accounting следующая стадия ЧастичнаяОплата	OK	HTTP 204 
+6a. создать скидку	OK	id=c8624c41-d99c-4204-a618-642ebcb1b996 percent=5 vendor=177c6d46-c58f-414f-aa15-10780d3f9efe
+6b. PUT /api/discounts/{id} percent 5→8.5	OK	HTTP 204 
+6c. заказ из КП	OK	id=6ca999fe-1893-488b-8b76-63e2df225450 status=Draft
+6d. статус заказа Draft→Placed	OK	HTTP 204 
+6e. GET /api/audit old/new	OK	записей=82 discount_hits=1 order_hits=1 sample=['Discount.Percent 5.00→8.5', 'Order.Status Draft→Placed']
+8. stock/adjust	OK	HTTP dec/inc/floor=204/204/204 stock 10→7→10→0 (ожидали 7, 10, 0)
+9a. импорт прайса (товары на 2-м листе)	OK	HTTP 200 rows=2 created=2 upserted=2 errors=[] file=C:\Users\Ardor\AppData\Local\Temp\claude\C--Users-Ardor-Desktop-------\fd1da0e6-f9c6-4468-9150-7a2d5fd3b32f\scratchpad\pricelist-second-sheet-ca35de66.xlsx
+9b. битый файл не роняет 500	OK	HTTP 200 body={"rowsProcessed": 0, "productsCreated": 0, "offersUpserted": 0, "errors": ["Структура файла не распознана: File contains corrupted data."]}
+10a. GET /api/products?search= после импорта	OK	HTTP 200 found=True total=1 sku=E2E-XLSX-ca35de66-1
+10b. GET /api/search (Meilisearch/Worker)	OK	HTTP 200 found=True hits=2 
+7a. письма в MailHog на адреса ролей	OK	total=2 to=['accounting@procurement.local', 'manager@procurement.local'] hit_roles=['accounting@procurement.local'] subjects=['=?utf-8?B?0JfQsNC60LDQtyDQsiDRgNCw0LHQvtGC0LU=?=', '=?utf-8?B?0KHRh9C10YIgTk9DINGC0YDQtdCx0YPQtdGCINCy0L3QuNC8?= =?utf-8?B?0LDQvdC40Y8=?=']
+7b. повторный проход диспетчера без дубля	OK	total 2→2 delta=0; unique fingerprints 2→2
+ИТОГО	30 из 30

@@ -1,0 +1,37 @@
+# .NET
+bin/
+obj/
+*.user
+artifacts/
+
+# Rider / IDE
+.idea/
+.vs/
+*.suo
+
+# Node / frontend (Этап 7)
+node_modules/
+dist/
+build/
+
+# Env / secrets
+.env
+
+# Прайсы поставщиков не коммитим
+docs/*.xlsx
+docs/ekf_pricelist*.xlsx
+
+# Промпты агентов
+TASK_FOR_CLINE.md
+TASK_FOR_CLINE_FRONTEND.md
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Python (сборка записки)
+__pycache__/
+*.pyc
+
+# Временные файлы Word
+~$*

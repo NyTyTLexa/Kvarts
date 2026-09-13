@@ -1,0 +1,650 @@
+name: procurement-system
+
+# Всё одной командой: docker compose up --build
+# Параметры — из .env (см. .env.example).
+#
+# HTTP-соседи: appsettings смотрят на localhost — внутри контейнера это сам процесс.
+# Куда слать — на живой источник для SPA. Префиксы шлюза на quoting/commercial/ordering/logistics/notifications/retail
+# включены (12.5, 12.10) → DNS compose (quoting/ordering/catalog), не монолит. Каталог — http://catalog:8080.
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: ps-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-procurement}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-procurement}
+      POSTGRES_DB: ${POSTGRES_DB:-procurement}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-procurement}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: ps-nats
+    command: ["-js", "-m", "8222"]
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - natsdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8222/varz >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    container_name: ps-meilisearch
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-masterKey_dev_change_me}
+      MEILI_ENV: development
+    ports:
+      - "7700:7700"
+    volumes:
+      - meilidata:/meili_data
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: ps-keycloak
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: http://localhost:8088
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "8088:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+  # Единое окно наблюдаемости: Grafana + Tempo (трассы) + Loki (логи) + Prometheus (метрики).
+  # Один образ вместо трёх систем; приёмник OTLP — тот же 4317, поэтому сервисы
+  # не знают о замене. Данные живут в томе, перезапуск их не стирает.
+  grafana:
+    image: grafana/otel-lgtm:0.11.4
+    container_name: ps-grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      # Иначе стартовая страница — пустой дашборд «добро пожаловать».
+      GF_DEFAULT_APP_MODE: development
+    ports:
+      - "3000:3000"    # интерфейс Grafana
+      - "4317:4317"    # OTLP gRPC — сюда шлют сервисы
+      - "4318:4318"    # OTLP HTTP
+    volumes:
+      - grafanadata:/data
+    healthcheck:
+      # В образе нет ни wget, ни curl. Зато он сам создаёт /tmp/ready,
+      # когда поднялись все пять внутренних служб — по нему и проверяем.
+      test: ["CMD-SHELL", "test -f /tmp/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Api/ProcurementSystem.Api.csproj
+    image: ps-api
+    container_name: ps-api
+    command: ["ProcurementSystem.Api.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-procurement};Username=${POSTGRES_USER:-procurement};Password=${POSTGRES_PASSWORD:-procurement}
+      Meilisearch__Url: http://meilisearch:7700
+      Meilisearch__ApiKey: ${MEILI_MASTER_KEY:-masterKey_dev_change_me}
+      Nats__Url: nats://nats:4222
+      Otlp__Endpoint: http://grafana:4317
+      Keycloak__Authority: http://localhost:8088/realms/procurement
+      Keycloak__MetadataAddress: http://keycloak:8080/realms/procurement/.well-known/openid-configuration
+      Keycloak__InternalIssuer: http://keycloak:8080/realms/procurement
+      Keycloak__BackchannelHost: keycloak
+      Keycloak__BackchannelPort: "8080"
+      Keycloak__Audience: procurement-api
+      Keycloak__RequireHttpsMetadata: "false"
+      Keycloak__AdminBaseUrl: http://keycloak:8080
+      Keycloak__AdminUsername: ${KEYCLOAK_ADMIN:-admin}
+      Keycloak__AdminPassword: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      Email__Enabled: "true"
+      Email__Host: mailhog
+      Email__Port: "1025"
+      Email__From: noreply@procurement.local
+      Email__FrontendBaseUrl: http://localhost:5173
+    ports:
+      - "5165:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    restart: unless-stopped
+
+  auth:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Auth/ProcurementSystem.Auth.csproj
+    image: ps-auth
+    container_name: ps-auth
+    command: ["ProcurementSystem.Auth.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Keycloak__Authority: http://localhost:8088/realms/procurement
+      Keycloak__MetadataAddress: http://keycloak:8080/realms/procurement/.well-known/openid-configuration
+      Keycloak__InternalIssuer: http://keycloak:8080/realms/procurement
+      Keycloak__BackchannelHost: keycloak
+      Keycloak__BackchannelPort: "8080"
+      Keycloak__Audience: procurement-api
+      Keycloak__RequireHttpsMetadata: "false"
+      Keycloak__AdminBaseUrl: http://keycloak:8080
+      Keycloak__AdminUsername: ${KEYCLOAK_ADMIN:-admin}
+      Keycloak__AdminPassword: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      Keycloak__Realm: procurement
+      Keycloak__PublicClientId: procurement-api
+      Keycloak__DefaultRole: viewer
+    ports:
+      - "5167:8080"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    restart: unless-stopped
+
+  matching:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Services.Matching/ProcurementSystem.Services.Matching.csproj
+    image: ps-matching
+    container_name: ps-matching
+    command: ["ProcurementSystem.Services.Matching.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://grafana:4317
+      Keycloak__Authority: http://localhost:8088/realms/procurement
+      Keycloak__MetadataAddress: http://keycloak:8080/realms/procurement/.well-known/openid-configuration
+      Keycloak__InternalIssuer: http://keycloak:8080/realms/procurement
+      Keycloak__BackchannelHost: keycloak
+      Keycloak__BackchannelPort: "8080"
+      Keycloak__Audience: procurement-api
+      Keycloak__RequireHttpsMetadata: "false"
+      Neighbors__Catalog__BaseUrl: http://catalog:8080
+      Neighbors__Quoting__BaseUrl: http://quoting:8080
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-procurement};Username=${POSTGRES_USER:-procurement};Password=${POSTGRES_PASSWORD:-procurement}
+    ports:
+      - "5174:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      catalog:
+        condition: service_healthy
+      quoting:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Worker/ProcurementSystem.Worker.csproj
+    image: ps-worker
+    container_name: ps-worker
+    command: ["ProcurementSystem.Worker.dll"]
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      # Каталог переехал в схему catalog. Порядок поиска схем перенацеливает индексатор
+      # на неё без правки кода: Products и PriceListItems берутся из catalog,
+      # остальное (Outbox монолита и прочее) — по-прежнему из public.
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-procurement};Username=${POSTGRES_USER:-procurement};Password=${POSTGRES_PASSWORD:-procurement};Search Path=catalog,public
+      Meilisearch__Url: http://meilisearch:7700
+      Meilisearch__ApiKey: ${MEILI_MASTER_KEY:-masterKey_dev_change_me}
+      Nats__Url: nats://nats:4222
+      Otlp__Endpoint: http://grafana:4317
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+      args:
+        VITE_KEYCLOAK_URL: http://localhost:8088/realms/procurement
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org}
+    image: ps-frontend
+    container_name: ps-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Gateway/ProcurementSystem.Gateway.csproj
+    image: ps-gateway
+    container_name: ps-gateway
+    command: ["ProcurementSystem.Gateway.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://grafana:4317
+    ports:
+      - "5160:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+      catalog:
+        condition: service_healthy
+      quoting:
+        condition: service_healthy
+      commercial:
+        condition: service_healthy
+      ordering:
+        condition: service_healthy
+      logistics:
+        condition: service_healthy
+      notifications:
+        condition: service_healthy
+      matching:
+        condition: service_healthy
+      retail:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    restart: unless-stopped
+
+  catalog:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Services.Catalog/ProcurementSystem.Services.Catalog.csproj
+    image: ps-catalog
+    container_name: ps-catalog
+    command: ["ProcurementSystem.Services.Catalog.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://grafana:4317
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-procurement};Username=${POSTGRES_USER:-procurement};Password=${POSTGRES_PASSWORD:-procurement}
+      Keycloak__Authority: http://localhost:8088/realms/procurement
+      Keycloak__MetadataAddress: http://keycloak:8080/realms/procurement/.well-known/openid-configuration
+      Keycloak__InternalIssuer: http://keycloak:8080/realms/procurement
+      Keycloak__BackchannelHost: keycloak
+      Keycloak__BackchannelPort: "8080"
+      Keycloak__Audience: procurement-api
+      Keycloak__RequireHttpsMetadata: "false"
+      Meilisearch__Url: http://meilisearch:7700
+      Meilisearch__ApiKey: ${MEILI_MASTER_KEY:-masterKey_dev_change_me}
+      Nats__Url: nats://nats:4222
+    ports:
+      - "5161:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    restart: unless-stopped
+
+  quoting:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Services.Quoting/ProcurementSystem.Services.Quoting.csproj
+    image: ps-quoting
+    container_name: ps-quoting
+    command: ["ProcurementSystem.Services.Quoting.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://grafana:4317
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-procurement};Username=${POSTGRES_USER:-procurement};Password=${POSTGRES_PASSWORD:-procurement}
+      Keycloak__Authority: http://localhost:8088/realms/procurement
+      Keycloak__MetadataAddress: http://keycloak:8080/realms/procurement/.well-known/openid-configuration
+      Keycloak__InternalIssuer: http://keycloak:8080/realms/procurement
+      Keycloak__BackchannelHost: keycloak
+      Keycloak__BackchannelPort: "8080"
+      Keycloak__Audience: procurement-api
+      Keycloak__RequireHttpsMetadata: "false"
+      # localhost внутри контейнера — сам quoting. Каталог уже в шлюзе → DNS compose.
+      Neighbors__Catalog__BaseUrl: http://catalog:8080
+    ports:
+      - "5162:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      catalog:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    restart: unless-stopped
+
+  commercial:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Services.Commercial/ProcurementSystem.Services.Commercial.csproj
+    image: ps-commercial
+    container_name: ps-commercial
+    command: ["ProcurementSystem.Services.Commercial.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://grafana:4317
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-procurement};Username=${POSTGRES_USER:-procurement};Password=${POSTGRES_PASSWORD:-procurement}
+      Keycloak__Authority: http://localhost:8088/realms/procurement
+      Keycloak__MetadataAddress: http://keycloak:8080/realms/procurement/.well-known/openid-configuration
+      Keycloak__InternalIssuer: http://keycloak:8080/realms/procurement
+      Keycloak__BackchannelHost: keycloak
+      Keycloak__BackchannelPort: "8080"
+      Keycloak__Audience: procurement-api
+      Keycloak__RequireHttpsMetadata: "false"
+      # /api/specifications в шлюзе → quoting (12.5); КП и спецификации читаем оттуда, не из монолита.
+      Neighbors__QuotingBaseUrl: http://quoting:8080
+      # Консьюмер GoodsReceiptCompleted (приёмка склада → счёт).
+      Nats__Url: nats://nats:4222
+    ports:
+      - "5163:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      quoting:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    restart: unless-stopped
+
+  ordering:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Services.Ordering/ProcurementSystem.Services.Ordering.csproj
+    image: ps-ordering
+    container_name: ps-ordering
+    command: ["ProcurementSystem.Services.Ordering.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://grafana:4317
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-procurement};Username=${POSTGRES_USER:-procurement};Password=${POSTGRES_PASSWORD:-procurement}
+      Keycloak__Authority: http://localhost:8088/realms/procurement
+      Keycloak__MetadataAddress: http://keycloak:8080/realms/procurement/.well-known/openid-configuration
+      Keycloak__InternalIssuer: http://keycloak:8080/realms/procurement
+      Keycloak__BackchannelHost: keycloak
+      Keycloak__BackchannelPort: "8080"
+      Keycloak__Audience: procurement-api
+      Keycloak__RequireHttpsMetadata: "false"
+      # /api/specifications в шлюзе → quoting (12.5). Каталог — уже отдельный процесс.
+      Neighbors__Quoting__BaseUrl: http://quoting:8080
+      Neighbors__Catalog__BaseUrl: http://catalog:8080
+    ports:
+      - "5164:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      quoting:
+        condition: service_healthy
+      catalog:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    restart: unless-stopped
+
+  logistics:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Services.Logistics/ProcurementSystem.Services.Logistics.csproj
+    image: ps-logistics
+    container_name: ps-logistics
+    command: ["ProcurementSystem.Services.Logistics.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://grafana:4317
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-procurement};Username=${POSTGRES_USER:-procurement};Password=${POSTGRES_PASSWORD:-procurement}
+      Keycloak__Authority: http://localhost:8088/realms/procurement
+      Keycloak__MetadataAddress: http://keycloak:8080/realms/procurement/.well-known/openid-configuration
+      Keycloak__InternalIssuer: http://keycloak:8080/realms/procurement
+      Keycloak__BackchannelHost: keycloak
+      Keycloak__BackchannelPort: "8080"
+      Keycloak__Audience: procurement-api
+      Keycloak__RequireHttpsMetadata: "false"
+      Nats__Url: nats://nats:4222
+      # /api/orders в шлюзе → ordering (12.5); приёмка читает заказ оттуда, не из монолита.
+      Services__Ordering: http://ordering:8080
+    ports:
+      - "5166:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      ordering:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    restart: unless-stopped
+
+  notifications:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Services.Notifications/ProcurementSystem.Services.Notifications.csproj
+    image: ps-notifications
+    container_name: ps-notifications
+    command: ["ProcurementSystem.Services.Notifications.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://grafana:4317
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-procurement};Username=${POSTGRES_USER:-procurement};Password=${POSTGRES_PASSWORD:-procurement}
+      Keycloak__Authority: http://localhost:8088/realms/procurement
+      Keycloak__MetadataAddress: http://keycloak:8080/realms/procurement/.well-known/openid-configuration
+      Keycloak__InternalIssuer: http://keycloak:8080/realms/procurement
+      Keycloak__BackchannelHost: keycloak
+      Keycloak__BackchannelPort: "8080"
+      Keycloak__Audience: procurement-api
+      Keycloak__RequireHttpsMetadata: "false"
+      Nats__Url: nats://nats:4222
+      Neighbors__Commercial__BaseUrl: http://commercial:8080
+      Neighbors__Ordering__BaseUrl: http://ordering:8080
+      Neighbors__Logistics__BaseUrl: http://logistics:8080
+      Neighbors__TokenUrl: http://keycloak:8080/realms/procurement/protocol/openid-connect/token
+      Neighbors__ServiceUser: admin
+      Neighbors__ServicePassword: admin
+      Email__Enabled: "true"
+      Email__Host: mailhog
+      Email__Port: "1025"
+      Email__From: noreply@procurement.local
+      Email__FrontendBaseUrl: http://localhost:5173
+    ports:
+      - "5175:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      commercial:
+        condition: service_healthy
+      ordering:
+        condition: service_healthy
+      logistics:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    restart: unless-stopped
+
+  retail:
+    build:
+      context: .
+      dockerfile: docker/dotnet.Dockerfile
+      args:
+        PROJECT: src/ProcurementSystem.Services.Retail/ProcurementSystem.Services.Retail.csproj
+    image: ps-retail
+    container_name: ps-retail
+    command: ["ProcurementSystem.Services.Retail.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://grafana:4317
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-procurement};Username=${POSTGRES_USER:-procurement};Password=${POSTGRES_PASSWORD:-procurement}
+      Keycloak__Authority: http://localhost:8088/realms/procurement
+      Keycloak__MetadataAddress: http://keycloak:8080/realms/procurement/.well-known/openid-configuration
+      Keycloak__InternalIssuer: http://keycloak:8080/realms/procurement
+      Keycloak__BackchannelHost: keycloak
+      Keycloak__BackchannelPort: "8080"
+      Keycloak__Audience: procurement-api
+      Keycloak__RequireHttpsMetadata: "false"
+      Neighbors__Catalog__BaseUrl: http://catalog:8080
+    ports:
+      - "5176:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      catalog:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    restart: unless-stopped
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: ps-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  grafanadata:
+  pgdata:
+  natsdata:
+  meilidata:

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .flow { display: flex; flex-direction: column; align-items: center; width: 980px; }
+    .flow .box { width: 520px; }
+    .side {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 980px;
+      margin-top: 18px;
+    }
+  </style>
+</head>
+<body>
+<div class="sheet">
+  <h1>Текущая ситуация (AS IS)</h1>
+  <div class="flow">
+    <div class="box bad">Прайс-листы поставщиков в разрозненных файлах Excel (.xlsx / .xls)</div>
+    <div class="arrow-v"></div>
+    <div class="box warn">Ручной поиск артикула и наименования в нескольких книгах</div>
+    <div class="arrow-v"></div>
+    <div class="box warn">Расчёт скидки, НДС и итога в отдельной таблице руководителя проекта</div>
+    <div class="arrow-v"></div>
+    <div class="box">Один вариант КП без формального сравнения поставщиков</div>
+    <div class="arrow-v"></div>
+    <div class="box warn">Согласование наценки и маржи в переписке и устных обсуждениях</div>
+    <div class="arrow-v"></div>
+    <div class="box">Ручной ввод счёта во внутренний NOC и заказа поставщику</div>
+    <div class="arrow-v"></div>
+    <div class="box">Приёмка на складе и отдельное отражение в 1С</div>
+  </div>
+  <div class="side">
+    <div class="box bad small">Нет единого архива прайсов и истории цены</div>
+    <div class="box bad small">Несопоставленные позиции теряются или подставляются без вероятности</div>
+    <div class="box bad small">Статусы живут в файлах и почте, аудит невосстановим</div>
+    <div class="box bad small">Изменение прайса после «утверждения» меняет уже согласованную стоимость</div>
+  </div>
+</div>
+</body>
+</html>

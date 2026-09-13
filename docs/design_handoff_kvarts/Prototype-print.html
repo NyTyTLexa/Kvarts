@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Кварц — прототип · печать</title>
+<link rel="stylesheet" href="tokens.css"/>
+<link rel="stylesheet" href="app/v3.css"/>
+<style>
+  html, body { margin: 0; padding: 0; background: #6b6660; font-family: 'Onest', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { color: #1c1917; }
+
+  /* Screen preview (non-print) */
+  .page {
+    width: 1122px; height: 793px;
+    margin: 16px auto; background: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    overflow: hidden; position: relative;
+    display: flex; flex-direction: column;
+    box-sizing: border-box;
+  }
+  .page-head {
+    height: 40px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 22px;
+    border-bottom: 1px solid #e7e5e4;
+    background: #fafaf9;
+  }
+  .page-head .num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #a8a29e; letter-spacing: 0.06em; }
+  .page-head .lbl { font-size: 13px; font-weight: 600; color: #1c1917; }
+  .page-head .sys { margin-left: auto; font-size: 11px; color: #a8a29e; letter-spacing: 0.04em; }
+  .page-body {
+    flex: 1; position: relative; overflow: hidden;
+    display: flex; align-items: flex-start; justify-content: center;
+  }
+  .frame { transform-origin: top center; flex-shrink: 0; background: #fff; }
+
+  /* Cover */
+  .cover {
+    width: 1122px; height: 793px; margin: 16px auto;
+    background: #faf9f7; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 90px; box-sizing: border-box; position: relative;
+  }
+
+  /* Section divider page */
+  .divider {
+    width: 1122px; height: 793px; margin: 16px auto;
+    background: #1c1917; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 90px; box-sizing: border-box;
+  }
+
+  @page { size: A4 landscape; margin: 0; }
+
+  @media print {
+    html, body { background: #fff; }
+    .page, .cover, .divider {
+      margin: 0; box-shadow: none;
+      width: 1122px; height: 793px;
+      break-after: page; page-break-after: always;
+    }
+    *, *::before, *::after {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="app/data.jsx"></script>
+<script type="text/babel" src="app/ui.jsx"></script>
+<script type="text/babel" src="app/v2.jsx"></script>
+<script type="text/babel" src="app/v2-more.jsx"></script>
+<script type="text/babel" src="app/v2-data.jsx"></script>
+<script type="text/babel" src="app/v2-roles.jsx"></script>
+<script type="text/babel" src="app/v2-uc02.jsx"></script>
+<script type="text/babel" src="app/v2-cat.jsx"></script>
+<script type="text/babel" src="app/v2-detail.jsx"></script>
+<script type="text/babel" src="app/v2-arch.jsx"></script>
+<script type="text/babel" src="app/v2-c4.jsx"></script>
+
+<script type="text/babel">
+const PAGE_W = 1122;
+const PAGE_H = 793;
+const HEAD_H = 40;
+const FRAME_W = 1440;
+const PAD = 10;
+
+// Ordered list of screens for the PDF — B-style flow + C4 architecture.
+const SECTIONS = [
+  { title: 'Основной поток', sub: 'РП формирует КП: дашборд → загрузка → сравнение → детальный КП → скидки', screens: [
+    ['B1',  'Дашборд проектов',                 'V2Dashboard',          900],
+    ['B2',  'Загрузка прайса · drag-drop + маппинг', 'V2Upload',         900],
+    ['B3',  'Сравнение 3 вариантов КП ★',        'V2KPCompare',          900],
+    ['B4',  'Детальный КП · замена поставщика',  'V2KPDetail',          1000],
+    ['B5',  'Скидки по поставщикам',             'V2Discounts',          900],
+  ]},
+  { title: 'UC-02 · новый проект и сопоставление', sub: 'Карточка проекта → загрузка Excel-перечня → нечёткое сопоставление + аналоги', screens: [
+    ['B14', 'Новый проект (карточка)',           'V2NewProject',        1000],
+    ['B15', 'Загрузка перечня проекта',          'V2UploadProjectList',  900],
+    ['B16', 'Сопоставление позиций · fuzzy ★',   'V2MatchResults',      1100],
+  ]},
+  { title: 'Согласование, доставка, аналитика', sub: 'Коммерческий блок → счёт в NOC → справочники → аналитика → журнал', screens: [
+    ['B6',  'Согласование КБ · маржинальность',  'V2Approval',          1000],
+    ['B7',  'Счёт NOC → оплата → склад → 1С',     'V2NOC',               1000],
+    ['B8',  'Справочник поставщиков',            'V2Suppliers',          900],
+    ['B9',  'Аналитика тендеров и закупок',      'V2Analytics',          900],
+    ['B10', 'Журнал событий',                    'V2Log',                900],
+  ]},
+  { title: 'Экраны по ролям', sub: 'Склад · бухгалтерия · администратор', screens: [
+    ['B11', 'Склад · приёмка партии',            'V2WarehouseReceive',   980],
+    ['B12', 'Бухгалтерия · очередь к оплате',    'V2AccountingQueue',    960],
+    ['B13', 'Администратор · пользователи',      'V2AdminUsers',         960],
+  ]},
+  { title: 'Справочники, профили, настройки', sub: 'Производители · номенклатура · профиль поставщика · карточка проекта · настройки', screens: [
+    ['B17', 'Справочник производителей',         'V2Vendors',            900],
+    ['B18', 'Номенклатура с категориями',        'V2Catalog',            900],
+    ['B19', 'Профиль поставщика',                'V2SupplierProfile',    980],
+    ['B20', 'Карточка проекта · версии КП',      'V2ProjectDetail',     1000],
+    ['B21', 'Настройки и интеграции',            'V2Settings',          1100],
+  ]},
+  { title: 'Архитектура · модель C4', sub: 'System Context → Containers → Components (Quote Service) → Deployment', screens: [
+    ['C4·1', 'System Context',                   'V2C4Context',          900],
+    ['C4·2', 'Containers',                       'V2C4Containers',      1400],
+    ['C4·3', 'Components · Quote Service',        'V2C4Components',      1400],
+    ['C4·4', 'Deployment',                       'V2C4Deployment',      1200],
+    ['ARCH', 'Слои системы (вводная)',           'V2Arch',              2400],
+  ]},
+];
+
+function Screen({ num, label, comp, h }) {
+  const Comp = window[comp];
+  const availH = PAGE_H - HEAD_H - PAD * 2;
+  const availW = PAGE_W - PAD * 2;
+  const scale = Math.min(availW / FRAME_W, availH / h);
+  return (
+    <div className="page">
+      <div className="page-head">
+        <span className="num">{num}</span>
+        <span className="lbl">{label}</span>
+        <span className="sys">Кварц · система подбора КП</span>
+      </div>
+      <div className="page-body">
+        <div className="frame" style={{ width: FRAME_W, height: h, transform: `scale(${scale})`, marginTop: PAD }}>
+          {Comp ? <Comp/> : <div style={{ padding: 40 }}>missing: {comp}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Cover() {
+  return (
+    <div className="cover">
+      <div style={{ width: 44, height: 44, borderRadius: 10, background: '#c2410c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 22, marginBottom: 32 }}>◆</div>
+      <div style={{ fontSize: 13, fontFamily: 'JetBrains Mono', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#a8a29e', marginBottom: 14 }}>Прототип · UI + архитектура</div>
+      <h1 style={{ margin: 0, fontSize: 52, fontWeight: 600, letterSpacing: -1, lineHeight: 1.05, maxWidth: 820 }}>
+        Кварц — система подбора оборудования и формирования КП
+      </h1>
+      <p style={{ margin: '20px 0 0', fontSize: 16, color: '#57534e', lineHeight: 1.6, maxWidth: 720 }}>
+        Распределённая информационная система автоматизации закупочных процессов и интеллектуального
+        подбора оборудования. 24 экрана интерфейса в стиле Notion / Airtable и архитектура по модели C4.
+      </p>
+      <div style={{ display: 'flex', gap: 40, marginTop: 48, paddingTop: 28, borderTop: '1px solid #e7e5e4' }}>
+        {[
+          ['24', 'экрана UI'],
+          ['5', 'ролей · RBAC'],
+          ['4', 'C4-диаграммы'],
+          ['.NET 8', 'React · Docker'],
+        ].map(([n, l], i) => (
+          <div key={i}>
+            <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, color: '#c2410c' }}>{n}</div>
+            <div style={{ fontSize: 13, color: '#78716c', marginTop: 2 }}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ position: 'absolute', bottom: 56, left: 90, fontSize: 12, fontFamily: 'JetBrains Mono', color: '#a8a29e' }}>
+        v0.8 · {new Date().toLocaleDateString('ru-RU')}
+      </div>
+    </div>
+  );
+}
+
+function Divider({ idx, title, sub }) {
+  return (
+    <div className="divider">
+      <div style={{ fontSize: 13, fontFamily: 'JetBrains Mono', letterSpacing: '0.14em', color: '#c2410c', marginBottom: 16 }}>
+        РАЗДЕЛ {String(idx).padStart(2, '0')}
+      </div>
+      <h2 style={{ margin: 0, fontSize: 42, fontWeight: 600, letterSpacing: -0.6, lineHeight: 1.1, maxWidth: 800 }}>{title}</h2>
+      <p style={{ margin: '18px 0 0', fontSize: 15, color: '#a8a29e', lineHeight: 1.6, maxWidth: 700 }}>{sub}</p>
+    </div>
+  );
+}
+
+function PrintDoc() {
+  const pages = [<Cover key="cover"/>];
+  SECTIONS.forEach((sec, si) => {
+    pages.push(<Divider key={`d${si}`} idx={si + 1} title={sec.title} sub={sec.sub}/>);
+    sec.screens.forEach(([num, label, comp, h], i) => {
+      pages.push(<Screen key={`${si}-${i}`} num={num} label={label} comp={comp} h={h}/>);
+    });
+  });
+  return <>{pages}</>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<PrintDoc/>);
+
+// Auto-open print dialog once render + fonts are ready.
+(async function autoPrint() {
+  try { await document.fonts.ready; } catch (e) {}
+  // wait for React to commit all pages
+  await new Promise(r => setTimeout(r, 800));
+  // ensure at least the cover + some pages exist
+  let tries = 0;
+  while (document.querySelectorAll('.page').length < 5 && tries < 40) {
+    await new Promise(r => setTimeout(r, 100));
+    tries++;
+  }
+  await new Promise(r => setTimeout(r, 500));
+  window.print();
+})();
+</script>
+</body>
+</html>

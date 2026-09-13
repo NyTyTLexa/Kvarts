@@ -1,0 +1,134 @@
+:root {
+  --ink: #1f2a44;
+  --line: #3b5a8a;
+  --fill: #d6e3f0;
+  --fill2: #eef3f8;
+  --accent: #2b4c7e;
+  --white: #ffffff;
+  --muted: #5a6a80;
+  --ok: #d9ead3;
+  --warn: #fff2cc;
+  --bad: #f4cccc;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+  color: var(--ink);
+  font-family: "Segoe UI", "Arial", sans-serif;
+}
+.sheet {
+  display: inline-block;
+  background: #ffffff;
+  padding: 28px 32px 24px;
+}
+/* Ширину листа задаёт каждая схема отдельно: общее ограничение ломало вёрстку диаграммы
+   прецедентов (обрезался правый столбец). Схемы, свёрстанные под печать на 160 мм,
+   держат ширину около 1100 px — так подписи на странице остаются читаемыми. */
+h1 {
+  font-size: 22px;
+  font-weight: 650;
+  margin: 0 0 18px;
+  color: var(--accent);
+  text-align: center;
+}
+.box {
+  border: 1.5px solid var(--line);
+  background: var(--fill);
+  border-radius: 8px;
+  padding: 10px 14px;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.box.white { background: var(--white); }
+.box.soft { background: var(--fill2); }
+.box.ok { background: var(--ok); }
+.box.warn { background: var(--warn); }
+.box.bad { background: var(--bad); }
+.box.actor {
+  background: #fff;
+  border-radius: 40px;
+  min-width: 130px;
+  font-weight: 600;
+}
+.small { font-size: 13px; }
+.muted { color: var(--muted); font-size: 12px; }
+.arrow-v {
+  width: 0;
+  height: 22px;
+  border-left: 2px solid var(--line);
+  margin: 0 auto;
+  position: relative;
+}
+.arrow-v::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  bottom: -1px;
+  border: 6px solid transparent;
+  border-top-color: var(--line);
+  border-bottom-width: 0;
+}
+.row { display: flex; gap: 16px; align-items: stretch; justify-content: center; }
+.col { display: flex; flex-direction: column; gap: 10px; }
+.lane {
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: var(--fill2);
+  padding: 12px;
+}
+.lane h2 {
+  font-size: 14px;
+  margin: 0 0 10px;
+  text-align: center;
+  color: var(--accent);
+}
+.uc {
+  border: 1.5px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 13px;
+  min-width: 170px;
+}
+.comp {
+  border: 1.5px solid var(--line);
+  background: var(--fill);
+  border-radius: 6px;
+  padding: 8px 10px 10px;
+  min-width: 150px;
+  position: relative;
+}
+.comp .tab {
+  position: absolute;
+  top: -8px;
+  left: 10px;
+  width: 18px;
+  height: 10px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+  border-radius: 2px;
+}
+.comp b { display: block; font-size: 13px; margin-top: 4px; }
+.comp span { font-size: 11px; color: var(--muted); }
+table.grid {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+table.grid th, table.grid td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+table.grid th {
+  background: var(--fill);
+  color: var(--accent);
+  font-weight: 650;
+  text-align: center;
+}
+.note { font-size: 12px; color: var(--muted); margin-top: 10px; text-align: center; }

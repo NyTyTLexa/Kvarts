@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    /* Узкий лист: рисунок печатается на 160 мм. */
+    .sheet { width: 1100px; }
+    .tree { display: flex; flex-direction: column; align-items: stretch; width: 100%; }
+    .goal { width: 100%; font-weight: 650; font-size: 16px; }
+    .actors { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; margin-top: 8px; }
+    .actor-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .actor-col .box { min-height: 48px; overflow-wrap: break-word; }
+    .actor-col .actor { font-size: 16px; }
+    .imp { background: #fff; font-size: 14px; }
+    .feat { background: var(--ok); font-size: 14px; text-align: left; }
+    .pri { font-size: 13px; color: var(--accent); font-weight: 650; }
+    .note { font-size: 13px; }
+    /* Стрелка шире нуля, иначе ::after даёт ложное переполнение. */
+    .arrow-v { width: 12px; border-left: none; }
+    .arrow-v::before {
+      content: "";
+      position: absolute;
+      left: 5px; top: 0;
+      width: 2px; height: 100%;
+      background: var(--line);
+    }
+    .arrow-v::after { left: 0; }
+  </style>
+</head>
+<body>
+<div class="sheet">
+  <h1>Карта воздействий (Impact Mapping)</h1>
+  <div class="tree">
+    <div class="box goal">Цель: сократить время подготовки КП и снизить себестоимость закупки за счёт сравнимого, проверяемого выбора поставщика</div>
+    <div class="arrow-v"></div>
+    <div class="actors">
+      <div class="actor-col">
+        <div class="box actor">Руководитель проекта</div>
+        <div class="box imp">Не тратит смену на ручной разбор прайсов</div>
+        <div class="box feat"><span class="pri">P1</span> Гибкий импорт Excel, архив, история цен</div>
+        <div class="box feat"><span class="pri">P1</span> Сопоставление SKU + fuzzy/ML</div>
+        <div class="box feat"><span class="pri">P1</span> Три+ варианта КП, override, Excel/PDF</div>
+      </div>
+      <div class="actor-col">
+        <div class="box actor">Коммерческий блок</div>
+        <div class="box imp">Видит себестоимость и маржу до утверждения цены клиенту</div>
+        <div class="box feat"><span class="pri">P1</span> Расчёт наценки и маржи</div>
+        <div class="box feat"><span class="pri">P1</span> Решение согласовать / отклонить</div>
+        <div class="box feat"><span class="pri">P2</span> Автосоздание счёта NOC</div>
+      </div>
+      <div class="actor-col">
+        <div class="box actor">Бухгалтерия и склад</div>
+        <div class="box imp">Оплата и приёмка идут по зафиксированному снимку, а не по «живому» прайсу</div>
+        <div class="box feat"><span class="pri">P1</span> Стадии счёта и вложения</div>
+        <div class="box feat"><span class="pri">P1</span> Заказ-снимок и резерв остатка</div>
+        <div class="box feat"><span class="pri">P2</span> Приёмка и шлюзы 1С/WMS</div>
+      </div>
+      <div class="actor-col">
+        <div class="box actor">Руководство / IT</div>
+        <div class="box imp">Есть журнал действий и границы с учётным контуром</div>
+        <div class="box feat"><span class="pri">P1</span> RBAC (Keycloak), аудит</div>
+        <div class="box feat"><span class="pri">P2</span> Контракты интеграций</div>
+        <div class="box feat"><span class="pri">P3</span> Аналитика и HA — вне MVP</div>
+      </div>
+    </div>
+    <p class="note">P1 — высокий приоритет (MVP), P2 — средний, P3 — низкий / развитие</p>
+  </div>
+</div>
+</body>
+</html>

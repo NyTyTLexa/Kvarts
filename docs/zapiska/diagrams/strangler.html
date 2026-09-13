@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    /* Узкий лист: рисунок печатается на 160 мм, широкий лист даёт нечитаемые подписи. */
+    .sheet { width: 1060px; font-size: 15px; }
+    .stages { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; align-items: stretch; }
+    .stage {
+      border: 1.5px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: var(--fill);
+    }
+    .stage h3 { margin: 0 0 4px; font-size: 17px; color: var(--accent); }
+    .stage .no { font-size: 12px; color: var(--muted); letter-spacing: .06em; }
+    .stage ul { margin: 8px 0 0; padding-left: 18px; }
+    .stage li { font-size: 14px; margin-bottom: 5px; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+    .box {
+      border: 1.5px dashed var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: #fbfdff;
+    }
+    .box h3 { margin: 0 0 8px; font-size: 16px; color: var(--accent); text-align: center; }
+    .box p { margin: 0 0 7px; font-size: 14px; text-align: left; }
+    .tag { display: inline-block; font-size: 13px; padding: 1px 7px; border: 1px solid var(--line); border-radius: 999px; margin-right: 4px; }
+  </style>
+</head>
+<body>
+<div class="sheet">
+  <h1>Поэтапная миграция Strangler Fig через YARP</h1>
+  <div class="stages">
+    <div class="stage">
+      <div class="no">ЭТАП 1</div>
+      <h3>Модульный монолит</h3>
+      <ul>
+        <li>границы контекстов внутри одного процесса</li>
+        <li>бизнес-логика в сервисах Infrastructure, контроллеры тонкие</li>
+        <li>своя схема ещё не выделена: всё в public</li>
+      </ul>
+    </div>
+    <div class="stage">
+      <div class="no">ЭТАП 2</div>
+      <h3>Шлюз перед монолитом</h3>
+      <ul>
+        <li>YARP :5160 становится единственным входом для SPA</li>
+        <li>весь /api уходит в монолит как catch-all</li>
+        <li>клиент перестаёт знать адреса процессов</li>
+      </ul>
+    </div>
+    <div class="stage">
+      <div class="no">ЭТАП 3</div>
+      <h3>Вынос по префиксам</h3>
+      <ul>
+        <li>сервис поднимается рядом и получает свою схему БД</li>
+        <li>данные копируются из public скриптом переноса</li>
+        <li>префикс переключается в шлюзе; правило Order ставит частные маршруты раньше catch-all</li>
+      </ul>
+    </div>
+    <div class="stage">
+      <div class="no">ЭТАП 4</div>
+      <h3>Сжатие монолита</h3>
+      <ul>
+        <li>дубли контроллеров в монолите остаются как страховка и трафика не получают</li>
+        <li>монолит удерживает сквозные чтения</li>
+        <li>копия данных в public сохранена как откат</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="box">
+      <h3>Префиксы переключены на сервисы</h3>
+      <p><span class="tag">/api/auth</span><span class="tag">/api/users</span> Auth</p>
+      <p><span class="tag">/api/catalog</span><span class="tag">/api/products</span><span class="tag">/api/vendors</span><span class="tag">/api/manufacturers</span><span class="tag">/api/pricelist</span><span class="tag">/api/discounts</span> Catalog</p>
+      <p><span class="tag">/api/specifications</span> Quoting</p>
+      <p><span class="tag">/api/matching</span><span class="tag">/api/specifications/{id}/match</span> Matching</p>
+      <p><span class="tag">/api/approvals</span><span class="tag">/api/invoices</span> Commercial</p>
+      <p><span class="tag">/api/orders</span> Ordering &nbsp; <span class="tag">/api/receipts</span> Logistics</p>
+      <p><span class="tag">/api/notifications</span> Notifications &nbsp; <span class="tag">/api/retail</span> Retail</p>
+    </div>
+    <div class="box">
+      <h3>Остаётся в монолите (catch-all)</h3>
+      <p>Полнотекстовый поиск по индексу Meilisearch.</p>
+      <p>Журнал проектов и карточка проекта.</p>
+      <p>Аналитическая сводка по закупкам.</p>
+      <p>Журнал аудита с значениями «было → стало».</p>
+      <p class="note" style="margin-top:10px">Это сквозные чтения по данным всех контекстов: вынос потребовал бы либо запросов к пяти сервисам на каждый экран, либо отдельной отчётной базы. Для учебного контура выбран монолит как слой композиции.</p>
+    </div>
+  </div>
+  <p class="note">Порядок маршрутов в YARP задан полем Order: частные префиксы имеют меньший номер и выигрывают у catch-all монолита.</p>
+</div>
+</body>
+</html>

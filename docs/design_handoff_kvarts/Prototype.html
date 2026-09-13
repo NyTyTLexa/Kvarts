@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Кварц — система подбора КП · прототип</title>
+<link rel="stylesheet" href="tokens.css"/>
+<link rel="stylesheet" href="app/v3.css"/>
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eeea; font-family: 'Onest', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { color: #1c1917; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="app/data.jsx"></script>
+<script type="text/babel" src="app/ui.jsx"></script>
+<script type="text/babel" src="app/v1-shell.jsx"></script>
+<script type="text/babel" src="app/v1-kp.jsx"></script>
+<script type="text/babel" src="app/v1-flow.jsx"></script>
+<script type="text/babel" src="app/v2.jsx"></script>
+<script type="text/babel" src="app/v2-more.jsx"></script>
+<script type="text/babel" src="app/v2-data.jsx"></script>
+<script type="text/babel" src="app/v2-roles.jsx"></script>
+<script type="text/babel" src="app/v2-uc02.jsx"></script>
+<script type="text/babel" src="app/v2-cat.jsx"></script>
+<script type="text/babel" src="app/v2-detail.jsx"></script>
+<script type="text/babel" src="app/v2-arch.jsx"></script>
+<script type="text/babel" src="app/v2-c4.jsx"></script>
+<script type="text/babel" src="app/v3.jsx"></script>
+<script type="text/babel" src="app/v3-detail.jsx"></script>
+
+<script type="text/babel">
+const W = 1440;
+const H = 900;
+const W_DASH = 1440;
+const H_DASH = 880;
+
+function App() {
+  return (
+    <DesignCanvas
+      title="Кварц — корпоративная система подбора КП"
+      subtitle="Прототип v0.8 · стиль B на 22 экранах + архитектура в модели C4 (Context / Containers / Components / Deployment)"
+    >
+      {/* ─────────────────────────────────────────────── */}
+      {/* PRIMARY direction — Notion / Airtable, full 10 screens */}
+      <DCSection id="flow-b-main" title="Основной поток — Стиль B · Notion / Airtable"
+        subtitle="Дашборд → загрузка прайса → сравнение 3 вариантов КП → детальный КП с inline-редактированием → скидки">
+
+        <DCArtboard id="b-dash" label="B1 · Дашборд проектов" width={W} height={H}>
+          <V2Dashboard/>
+        </DCArtboard>
+
+        <DCArtboard id="b-upload" label="B2 · Загрузка прайса (drag-drop + маппинг)" width={W} height={H}>
+          <V2Upload/>
+        </DCArtboard>
+
+        <DCArtboard id="b-compare" label="B3 · Сравнение 3 вариантов КП ★ ключевой экран" width={W} height={H}>
+          <V2KPCompare/>
+        </DCArtboard>
+
+        <DCArtboard id="b-detail" label="B4 · Детальный КП с заменой поставщика" width={W} height={H + 100}>
+          <V2KPDetail/>
+        </DCArtboard>
+
+        <DCArtboard id="b-discounts" label="B5 · Скидки по поставщикам" width={W} height={H}>
+          <V2Discounts/>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="flow-b-back" title="Согласование, доставка, аналитика — Стиль B"
+        subtitle="Маршрут согласования → счёт в NOC → справочники → аналитика → журнал событий">
+
+        <DCArtboard id="b-approval" label="B6 · Согласование КБ (коммерческий блок)" width={W} height={H + 100}>
+          <V2Approval/>
+        </DCArtboard>
+
+        <DCArtboard id="b-noc" label="B7 · Счёт NOC → оплата → склад → 1С" width={W} height={H + 100}>
+          <V2NOC/>
+        </DCArtboard>
+
+        <DCArtboard id="b-suppliers" label="B8 · Справочник поставщиков" width={W} height={H}>
+          <V2Suppliers/>
+        </DCArtboard>
+
+        <DCArtboard id="b-analytics" label="B9 · Аналитика тендеров и закупок" width={W} height={H}>
+          <V2Analytics/>
+        </DCArtboard>
+
+        <DCArtboard id="b-log" label="B10 · Журнал событий" width={W} height={H}>
+          <V2Log/>
+        </DCArtboard>
+      </DCSection>
+      <DCSection id="flow-b-uc02" title="UC-02 — новый проект и сопоставление перечня"
+        subtitle="Создание карточки проекта → загрузка Excel-перечня → нечёткое сопоставление с базой и подбор аналогов">
+
+        <DCArtboard id="b-new" label="B14 · Новый проект (карточка)" width={W} height={H + 100}>
+          <V2NewProject/>
+        </DCArtboard>
+
+        <DCArtboard id="b-uplist" label="B15 · Загрузка перечня проекта" width={W} height={H}>
+          <V2UploadProjectList/>
+        </DCArtboard>
+
+        <DCArtboard id="b-match" label="B16 · Сопоставление позиций + fuzzy + аналоги ★" width={W} height={H + 200}>
+          <V2MatchResults/>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="flow-b-cat" title="Справочники и профили"
+        subtitle="Производители · номенклатура с деревом категорий · профиль поставщика со всей историей">
+
+        <DCArtboard id="b-vendors" label="B17 · Справочник производителей" width={W} height={H}>
+          <V2Vendors/>
+        </DCArtboard>
+
+        <DCArtboard id="b-cat" label="B18 · Номенклатура с категориями" width={W} height={H}>
+          <V2Catalog/>
+        </DCArtboard>
+
+        <DCArtboard id="b-supplier" label="B19 · Профиль поставщика" width={W} height={H + 80}>
+          <V2SupplierProfile/>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="flow-b-c4" title="Архитектура · модель C4"
+        subtitle="Система описана по К4 Саймона Брауна: System Context → Containers → Components (Quote Service) → Deployment">
+
+        <DCArtboard id="b-c4-l1" label="B22 · C4 Level 1 — System Context" width={W} height={H}>
+          <V2C4Context/>
+        </DCArtboard>
+
+        <DCArtboard id="b-c4-l2" label="B23 · C4 Level 2 — Containers" width={W} height={H + 500}>
+          <V2C4Containers/>
+        </DCArtboard>
+
+        <DCArtboard id="b-c4-l3" label="B24 · C4 Level 3 — Components (Quote Service)" width={W} height={H + 500}>
+          <V2C4Components/>
+        </DCArtboard>
+
+        <DCArtboard id="b-c4-dep" label="B25 · C4 Deployment" width={W} height={H + 300}>
+          <V2C4Deployment/>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="flow-b-arch" title="Архитектура · слои (вводная версия)"
+        subtitle="Распределённая система: 7 слоёв · .NET 8 + React TS · Keycloak + Elasticsearch + RabbitMQ · Docker Compose">
+
+        <DCArtboard id="b-arch" label="B22 · Архитектурная диаграмма · все слои" width={W} height={2400}>
+          <V2Arch/>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="flow-b-proj" title="Карточка проекта и настройки"
+        subtitle="Обзор проекта со всеми версиями КП · настройки системы и интеграции">
+
+        <DCArtboard id="b-proj" label="B20 · Карточка проекта (версии КП)" width={W} height={H + 100}>
+          <V2ProjectDetail/>
+        </DCArtboard>
+
+        <DCArtboard id="b-settings" label="B21 · Настройки и интеграции" width={W} height={H + 200}>
+          <V2Settings/>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="flow-b-roles" title="Экраны по ролям — Стиль B"
+        subtitle="Склад принимает партию · бухгалтерия видит очередь к оплате · администратор управляет доступами">
+
+        <DCArtboard id="b-wh" label="B11 · Склад: приёмка партии" width={W} height={H + 80}>
+          <V2WarehouseReceive/>
+        </DCArtboard>
+
+        <DCArtboard id="b-acc" label="B12 · Бухгалтерия: очередь к оплате" width={W} height={H + 60}>
+          <V2AccountingQueue/>
+        </DCArtboard>
+
+        <DCArtboard id="b-admin" label="B13 · Администратор: пользователи и доступы" width={W} height={H + 60}>
+          <V2AdminUsers/>
+        </DCArtboard>
+      </DCSection>
+      {/* ─────────────────────────────────────────────── */}
+      <DCSection id="flow-c" title="Альтернатива — Стиль C · Editorial / Brutalist"
+        subtitle="Тёмная редакционная версия по присланному референсу. Оставлена для сравнения.">
+
+        <DCArtboard id="c-dash" label="С-1 · Дашборд проектов" width={W} height={H}>
+          <V3Dashboard/>
+        </DCArtboard>
+
+        <DCArtboard id="c-compare" label="С-2 · Сравнение 3 вариантов КП ★ ключевой экран" width={W} height={H + 100}>
+          <V3KPCompare/>
+        </DCArtboard>
+
+        <DCArtboard id="c-detail" label="С-3 · Детальный КП, inline-замена поставщика" width={W} height={H + 100}>
+          <V3KPDetail/>
+        </DCArtboard>
+
+        <DCArtboard id="c-noc" label="С-4 · Счёт в NOC с lifecycle (оплата → склад → 1С)" width={W} height={H + 100}>
+          <V3NOC/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─────────────────────────────────────────────── */}
+      <DCSection id="flow-a-main" title="Основной поток — Вариант A · Linear-style"
+        subtitle="Дашборд → загрузка прайса → сравнение 3 вариантов КП → детальный КП с inline-редактированием → управление скидками">
+
+        <DCArtboard id="a-dash" label="01 · Дашборд проектов" width={W} height={H}>
+          <V1Dashboard/>
+        </DCArtboard>
+
+        <DCArtboard id="a-upload" label="02 · Загрузка прайса (drag-drop + маппинг)" width={W} height={H}>
+          <V1Upload/>
+        </DCArtboard>
+
+        <DCArtboard id="a-compare" label="03 · Сравнение 3 вариантов КП ★ ключевой экран" width={W} height={H}>
+          <V1KPCompare/>
+        </DCArtboard>
+
+        <DCArtboard id="a-detail" label="04 · Детальный КП с заменой поставщика" width={W} height={H}>
+          <V1KPDetail/>
+        </DCArtboard>
+
+        <DCArtboard id="a-discounts" label="05 · Скидки по вендорам" width={W} height={H}>
+          <V1Discounts/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─────────────────────────────────────────────── */}
+      <DCSection id="flow-a-back" title="Согласование, доставка, аналитика — Вариант A"
+        subtitle="Маршрут согласования → счёт в NOC с lifecycle → справочник поставщиков → аналитика → журнал событий">
+
+        <DCArtboard id="a-approval" label="06 · Согласование КБ (коммерческий блок)" width={W} height={H}>
+          <V1Approval/>
+        </DCArtboard>
+
+        <DCArtboard id="a-noc" label="07 · Запись в NOC · оплата → склад → 1С" width={W} height={H}>
+          <V1NOC/>
+        </DCArtboard>
+
+        <DCArtboard id="a-suppliers" label="08 · Справочник поставщиков" width={W} height={H}>
+          <V1Suppliers/>
+        </DCArtboard>
+
+        <DCArtboard id="a-analytics" label="09 · Аналитика тендеров и закупок" width={W} height={H}>
+          <V1Analytics/>
+        </DCArtboard>
+
+        <DCArtboard id="a-log" label="10 · Журнал событий (роль АДМ)" width={W} height={H}>
+          <V1Log/>
+        </DCArtboard>
+      </DCSection>
+
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

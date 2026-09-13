@@ -1,0 +1,15 @@
+{
+  "name": "Подбор — КП",
+  "short_name": "Подбор",
+  "description": "Кабинет подбора коммерческих предложений",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#e8edf2",
+  "theme_color": "#243447",
+  "lang": "ru",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

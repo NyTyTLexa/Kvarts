@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    /* Узкий лист: шесть этапов — два блока по три колонки. */
+    .sheet { width: 1100px; }
+    table.grid { table-layout: fixed; width: 100%; }
+    table.grid th, table.grid td { overflow-wrap: break-word; }
+    table.grid td { font-size: 14px; line-height: 1.35; }
+    table.grid th { font-size: 15px; }
+    table.grid + table.grid { margin-top: 14px; }
+    .ph { background: #fce5cd; }
+    .em { background: #d9ead3; }
+    .note { font-size: 13px; }
+    .layer { width: 148px; }
+  </style>
+</head>
+<body>
+<div class="sheet">
+  <h1>Customer Journey Map руководителя проекта</h1>
+  <table class="grid">
+    <colgroup>
+      <col class="layer">
+      <col><col><col>
+    </colgroup>
+    <tr>
+      <th>Слой</th>
+      <th>Получить прайсы</th>
+      <th>Собрать заявку</th>
+      <th>Подобрать аналоги</th>
+    </tr>
+    <tr>
+      <td><b>Действие</b></td>
+      <td>Загружает Excel поставщиков</td>
+      <td>Импортирует перечень проекта</td>
+      <td>Проверяет гипотезы ML и правит строки</td>
+    </tr>
+    <tr>
+      <td><b>Точка контакта</b></td>
+      <td>Экран «Прайсы», архив</td>
+      <td>Экран «Заявки»</td>
+      <td>Экран сопоставления</td>
+    </tr>
+    <tr>
+      <td><b>Артефакт</b></td>
+      <td>Каталог, офферы, история цен</td>
+      <td>Спецификация с количеством</td>
+      <td>ProductId, вероятность, причина</td>
+    </tr>
+    <tr>
+      <td><b>Ожидание</b></td>
+      <td>Файл любой структуры принимается</td>
+      <td>Строки не теряются</td>
+      <td>Неуверенность видна, можно поправить</td>
+    </tr>
+    <tr>
+      <td><b>Препятствие (было)</b></td>
+      <td class="ph">Разные колонки, «цена по запросу»</td>
+      <td class="ph">Опечатки и пустой артикул</td>
+      <td class="ph">Ложные совпадения</td>
+    </tr>
+    <tr>
+      <td><b>Эмоция</b></td>
+      <td class="em">Раздражение → контроль</td>
+      <td class="em">Неопределённость → ясность</td>
+      <td class="em">Сомнение → уверенность</td>
+    </tr>
+  </table>
+  <table class="grid">
+    <colgroup>
+      <col class="layer">
+      <col><col><col>
+    </colgroup>
+    <tr>
+      <th>Слой</th>
+      <th>Сравнить КП</th>
+      <th>Согласовать</th>
+      <th>Исполнить</th>
+    </tr>
+    <tr>
+      <td><b>Действие</b></td>
+      <td>Сравнивает 4 стратегии, ставит override</td>
+      <td>Задаёт наценку, ждёт решение КБ</td>
+      <td>Заказ, резерв, ожидание приёмки</td>
+    </tr>
+    <tr>
+      <td><b>Точка контакта</b></td>
+      <td>Экран сравнения КП, Excel/PDF</td>
+      <td>Экран маржи; колокольчик / email</td>
+      <td>Заказы, склад, счёт NOC</td>
+    </tr>
+    <tr>
+      <td><b>Артефакт</b></td>
+      <td>Выбранная стратегия, итог с НДС</td>
+      <td>Approval, Invoice</td>
+      <td>Order-снимок, GoodsReceipt</td>
+    </tr>
+    <tr>
+      <td><b>Ожидание</b></td>
+      <td>Понятно, почему выбран оффер</td>
+      <td>Маржа считается сама, решение фиксируется</td>
+      <td>Цена заказа не «поплывёт»</td>
+    </tr>
+    <tr>
+      <td><b>Препятствие (было)</b></td>
+      <td class="ph">Один вариант «на глаз»</td>
+      <td class="ph">Переписка, потеря комментария</td>
+      <td class="ph">Прайс меняется после утверждения</td>
+    </tr>
+    <tr>
+      <td><b>Эмоция</b></td>
+      <td class="em">Выбор с обоснованием</td>
+      <td class="em">Ожидание, затем фиксация</td>
+      <td class="em">Спокойствие по снимку</td>
+    </tr>
+  </table>
+  <p class="note">Карта описывает путь первичного пользователя (РП). Пути КБ, бухгалтерии и склада короче и начинаются с готового артефакта предыдущего этапа.</p>
+</div>
+</body>
+</html>

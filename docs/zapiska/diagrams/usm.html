@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    /* Узкий лист: шесть деятельностей — два ряда по три. */
+    .sheet { width: 1100px; }
+    .map {
+      display: grid;
+      grid-template-columns: 72px repeat(3, 1fr);
+      gap: 8px;
+      align-items: stretch;
+    }
+    .map + .map { margin-top: 14px; }
+    .axis {
+      writing-mode: horizontal-tb;
+      transform: none;
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 650;
+      text-align: center;
+      align-self: center;
+      line-height: 1.25;
+    }
+    .box { overflow-wrap: break-word; min-width: 0; }
+    .act { background: #cfe2f3; font-weight: 650; min-height: 48px; font-size: 15px; }
+    .task { background: #d9ead3; font-size: 14px; min-height: 52px; }
+    .story { background: #fff; font-size: 14px; min-height: 56px; text-align: left; }
+    .later { background: #f3f3f3; color: #555; font-size: 13px; }
+    .note { font-size: 13px; }
+  </style>
+</head>
+<body>
+<div class="sheet">
+  <h1>User Story Map</h1>
+  <div class="map">
+    <div></div>
+    <div class="box act">Каталог</div>
+    <div class="box act">Заявка</div>
+    <div class="box act">КП</div>
+
+    <div class="axis">время процесса →</div>
+    <div class="box task">Загрузить прайс и увидеть результат</div>
+    <div class="box task">Импортировать перечень и сопоставить</div>
+    <div class="box task">Получить сравнимые варианты</div>
+
+    <div class="axis">важность ↓ · MVP</div>
+    <div class="box story">Как РП, я загружаю .xlsx/.xls, чтобы каталог обновился без ручного маппинга колонок</div>
+    <div class="box story">Как РП, я вижу найденные и ненайденные строки, чтобы не потерять позицию тендера</div>
+    <div class="box story">Как РП, я сравниваю мин. цену, мин. срок и баланс, чтобы выбрать обоснованный вариант</div>
+
+    <div></div>
+    <div class="box story">Как РП, я вижу дубли SKU и «цену по запросу» как диагностику, а не как падение системы</div>
+    <div class="box story">Как РП, я подтверждаю ML-гипотезу или выбираю товар вручную</div>
+    <div class="box story">Как РП, я перекрываю стратегию ручным поставщиком в строке</div>
+
+    <div class="axis">позже</div>
+    <div class="box story later">Словарь синонимов номенклатуры</div>
+    <div class="box story later">Фильтры аналитики и выгрузка отчёта</div>
+    <div class="box story later">Версии КП как сущность</div>
+  </div>
+
+  <div class="map">
+    <div></div>
+    <div class="box act">Согласование</div>
+    <div class="box act">Счёт и оплата</div>
+    <div class="box act">Поставка</div>
+
+    <div class="axis">время процесса →</div>
+    <div class="box task">Утвердить цену для клиента</div>
+    <div class="box task">Провести оплату по снимку</div>
+    <div class="box task">Принять товар и закрыть контур</div>
+
+    <div class="axis">важность ↓ · MVP</div>
+    <div class="box story">Как РП, я задаю наценку и передаю КП в КБ с готовой маржой</div>
+    <div class="box story">Как бухгалтер, я двигаю стадии счёта и прикладываю документы</div>
+    <div class="box story">Как кладовщик, я ввожу факт приёмки и фиксирую расхождение</div>
+
+    <div></div>
+    <div class="box story">Как КБ, я согласую или возвращаю КП с комментарием</div>
+    <div class="box story">Как система, я создаю счёт NOC при согласовании без дубля</div>
+    <div class="box story">Как система, я резервирую остаток при заказе и возвращаю его при отмене</div>
+
+    <div class="axis">позже</div>
+    <div class="box story later">Многошаговый круг NOC</div>
+    <div class="box story later">Справочник реквизитов контрагента и НМЦ</div>
+    <div class="box story later">Реальные адаптеры 1С и WMS</div>
+  </div>
+  <p class="note">Горизонталь — деятельность пользователя во времени; вертикаль — приоритет историй. Нижний ряд — осознанный бэклог вне обязательного MVP.</p>
+</div>
+</body>
+</html>

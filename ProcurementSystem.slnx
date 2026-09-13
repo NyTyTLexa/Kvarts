@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ProcurementSystem.Api/ProcurementSystem.Api.csproj" />
+    <Project Path="src/ProcurementSystem.Auth/ProcurementSystem.Auth.csproj" />
+    <Project Path="src/ProcurementSystem.Contracts/ProcurementSystem.Contracts.csproj" />
+    <Project Path="src/ProcurementSystem.Domain/ProcurementSystem.Domain.csproj" />
+    <Project Path="src/ProcurementSystem.Infrastructure/ProcurementSystem.Infrastructure.csproj" />
+    <Project Path="src/ProcurementSystem.Worker/ProcurementSystem.Worker.csproj" />
+    <Project Path="src/ProcurementSystem.Gateway/ProcurementSystem.Gateway.csproj" />
+    <Project Path="src/ProcurementSystem.Services.Catalog/ProcurementSystem.Services.Catalog.csproj" />
+    <Project Path="src/ProcurementSystem.Services.Commercial/ProcurementSystem.Services.Commercial.csproj" />
+    <Project Path="src/ProcurementSystem.Services.Logistics/ProcurementSystem.Services.Logistics.csproj" />
+    <Project Path="src/ProcurementSystem.Services.Notifications/ProcurementSystem.Services.Notifications.csproj" />
+    <Project Path="src/ProcurementSystem.Services.Matching/ProcurementSystem.Services.Matching.csproj" />
+    <Project Path="src/ProcurementSystem.Services.Ordering/ProcurementSystem.Services.Ordering.csproj" />
+    <Project Path="src/ProcurementSystem.Services.Quoting/ProcurementSystem.Services.Quoting.csproj" />
+    <Project Path="src/ProcurementSystem.Services.Retail/ProcurementSystem.Services.Retail.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ProcurementSystem.Tests/ProcurementSystem.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,12 +1,11 @@
 # Кварц
 
-Курсовой проект — система автоматизации закупок и генерации коммерческих предложений.
+Система автоматизации закупок и генерации коммерческих предложений.
 
 Сквозной контур: импорт прайсов поставщиков → каталог → спецификация проекта →
 четыре варианта КП → согласование наценки → счёт → заказ со снимком цен → приёмка.
 
-Исходный код закрыт. Здесь — устройство системы и решения, которые за ним стоят.
-Код покажу на собеседовании, доступ на чтение дам по запросу.
+Курсовой проект, ЧелГУ. Решение: `ProcurementSystem.slnx`.
 
 .NET 10 · ASP.NET Core · EF Core, PostgreSQL 17 · YARP · Keycloak (OIDC/JWT) ·
 NATS JetStream · Meilisearch · React 19, TypeScript, Vite · ClosedXML, NPOI, QuestPDF ·
@@ -51,6 +50,8 @@ Logistics ──(Outbox)──> GoodsReceiptCompleted ──> Commercial
 - `IEventBus` — сейчас NATS JetStream;
 - `IAccountingGateway` / `IWarehouseGateway` — сейчас мок-адаптеры под 1С и WMS.
 
+Подробности — в [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 ## Решения
 
 ### Генератор считает четыре КП за один проход
@@ -70,14 +71,11 @@ Logistics ──(Outbox)──> GoodsReceiptCompleted ──> Commercial
 в итог не входят.
 
 Согласование берёт себестоимость из того же генератора. Счёт при создании
-фиксирует построчный снимок выбранного варианта — повторный вызов с той же
-стратегией, скидками и override.
+фиксирует построчный снимок выбранного варианта.
 
 Экспорт — Excel (ClosedXML) и PDF (QuestPDF).
 
 ### Сопоставление заявки с каталогом — не «просто Levenshtein»
-
-ТЗ оставляло алгоритм нечёткого поиска на выбор. Сделано так:
 
 1. точный артикул → `P ≈ 0.99`;
 2. кандидаты: TF-IDF (токены + символьные 3-граммы) и top-12 из Meilisearch,
@@ -89,7 +87,9 @@ Logistics ──(Outbox)──> GoodsReceiptCompleted ──> Commercial
 
 Модель дообучается на каталоге без ручной разметки: плюс — сам товар и он же
 с перестановкой букв, минус — случайный другой. Импортёр прайсов прогнан на
-реальном Excel EKF (~20 тыс. строк) и на стенде «120 поставщиков × 4 тыс. SKU».
+реальном Excel (~20 тыс. строк) и на стенде «120 поставщиков × 4 тыс. SKU».
+
+Разбор признаков — в [docs/ML_MATCHING.md](docs/ML_MATCHING.md).
 
 ### Заказ — застывший снимок, не живая ссылка на каталог
 
@@ -116,15 +116,67 @@ Keycloak, шесть ролей: администратор, руководит�
 сам себе, «Согласован» на счёте ставит только КБ, дальше — бухгалтерия.
 Шлюз JWT не проверяет — проксирует заголовок, каждый сервис валидирует сам.
 
+## Запуск
+
+Клонировать в путь **без кириллицы**: BuildKit на Docker Desktop падает, если
+в пути есть не-ASCII.
+
+Нужны Docker Desktop (Compose v2) и свободные порты `5173`, `5160`–`5176`,
+`5433`, `4222`, `7700`, `8088`.
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Первая сборка долгая (SDK .NET 10 + QuestPDF/Skia). Если параллельный
+`compose up --build` рвёт BuildKit на Windows — `.\up-docker.ps1` собирает
+образы по одному.
+
+Открыть http://localhost:5173, логин `manager` / `manager`.
+Keycloak импортирует realm из `keycloak/realm-procurement.json`.
+Миграции применяет Api при старте.
+
+Демо-пользователи (пароль = логин): `admin`, `manager`, `commercial`,
+`accounting`, `warehouse`, `viewer`.
+
+Демо-каталог: `POST /api/admin/seed` под ролью `admin`.
+
+Остановка: `docker compose down`.
+
+### Локальная разработка
+
+Инфраструктура в Docker, процессы на хосте (.NET SDK 10, Node `^20.19` или `>=22.12`):
+
+```bash
+docker compose up -d postgres nats meilisearch keycloak grafana
+dotnet build ProcurementSystem.slnx
+dotnet run --project src/ProcurementSystem.Api --no-build        # :5165
+dotnet run --project src/ProcurementSystem.Auth --no-build       # :5167
+dotnet run --project src/ProcurementSystem.Worker --no-build
+cd frontend && npm install && npm run dev                        # :5173
+```
+
+Сначала один `dotnet build`, затем процессы с `--no-build` — иначе Api и Worker
+дерутся за `Infrastructure.dll`. Vite проксирует `/api/auth` и `/api/users` на
+`:5167`, остальной `/api` — на монолит `:5165`.
+
 ## Проверка
+
+```bash
+dotnet test tests/ProcurementSystem.Tests
+```
 
 92 теста xUnit на EF Core InMemory: генератор КП, матчер, импорт Excel,
 согласование, счета, заказы, приёмка, резерв остатка, уведомления.
 
-Стенд поднимается Docker Compose: Postgres, NATS, Meilisearch, Keycloak,
-Gateway, сервисы, Worker, фронт.
+## Документация
 
-## Статус
-
-Рабочий стенд сквозного контура закупок. Код, прайсы поставщиков и секреты
-стенда закрыты.
+| Файл | О чём |
+|------|--------|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | слои, strangler fig, Outbox, генератор КП, жизненные циклы |
+| [docs/ML_MATCHING.md](docs/ML_MATCHING.md) | TF-IDF + логрегрессия, четвёртая стратегия КП |
+| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | ER, схемы PostgreSQL, паттерн «снимок» |
+| [docs/API.md](docs/API.md) | REST, кто обслуживает префикс |
+| [docs/UI.md](docs/UI.md) | живой скин кабинета снабженца |
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | сквозной прогон по ролям |

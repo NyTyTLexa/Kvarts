@@ -1,0 +1,93 @@
+/* Shared design tokens — both variants use the same accent family but
+   apply it at different intensities. */
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Amber accent family (oklch-harmonised) */
+  --amber-50:  #fff7ed;
+  --amber-100: #ffedd5;
+  --amber-200: #fed7aa;
+  --amber-400: #fb923c;
+  --amber-500: #f97316;
+  --amber-600: #ea580c;
+  --amber-700: #c2410c;
+  --amber-800: #9a3412;
+  --amber-900: #7c2d12;
+
+  /* Neutrals — warm gray (stone family) */
+  --stone-50:  #fafaf9;
+  --stone-100: #f5f5f4;
+  --stone-150: #ecebe8;
+  --stone-200: #e7e5e4;
+  --stone-300: #d6d3d1;
+  --stone-400: #a8a29e;
+  --stone-500: #78716c;
+  --stone-600: #57534e;
+  --stone-700: #44403c;
+  --stone-800: #292524;
+  --stone-900: #1c1917;
+  --stone-950: #0c0a09;
+
+  /* Semantic status tokens */
+  --ok:      #15803d;
+  --ok-bg:   #f0fdf4;
+  --warn:    #b45309;
+  --warn-bg: #fef3c7;
+  --err:     #b91c1c;
+  --err-bg:  #fef2f2;
+  --info:    #1d4ed8;
+  --info-bg: #eff6ff;
+}
+
+/* Variant A: Linear-style — dark sidebar, crisp whites */
+.v1 {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --surface-2: #f5f5f4;
+  --border: #e7e5e4;
+  --border-strong: #d6d3d1;
+  --text: #0c0a09;
+  --text-2: #57534e;
+  --text-3: #a8a29e;
+  --accent: var(--amber-700);
+  --accent-soft: var(--amber-50);
+  --accent-border: var(--amber-200);
+  --sidebar-bg: #1c1917;
+  --sidebar-text: #d6d3d1;
+  --sidebar-text-strong: #fafaf9;
+  --sidebar-hover: #292524;
+  --sidebar-active-bg: #292524;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 2px 8px rgba(28,25,23,0.06), 0 1px 2px rgba(28,25,23,0.04);
+  font-family: 'Onest', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+/* Variant B: Notion/Airtable — all light, softer, more spacious */
+.v2 {
+  --bg: #faf9f7;
+  --surface: #ffffff;
+  --surface-2: #f3f1ed;
+  --border: #ebe8e4;
+  --border-strong: #d8d4cd;
+  --text: #1f1d1b;
+  --text-2: #6b6660;
+  --text-3: #a8a29e;
+  --accent: #c2410c;
+  --accent-soft: #fef3e8;
+  --accent-border: #fdd9b4;
+  --sidebar-bg: #faf9f7;
+  --sidebar-text: #57534e;
+  --sidebar-text-strong: #1c1917;
+  --sidebar-hover: #efece6;
+  --sidebar-active-bg: #efece6;
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Reset within artboards */
+.artboard-root, .artboard-root * { box-sizing: border-box; }
+.artboard-root { font-feature-settings: 'tnum' on, 'cv11'; }
+
+/* Mono for codes/artikuls */
+.mono { font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace; font-feature-settings: 'tnum' on; }
+.tnum { font-variant-numeric: tabular-nums; }

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    /* Узкий лист: рисунок печатается на ширину 160 мм, при широком подписи нечитаемы. */
+    .sheet { width: 1120px; font-size: 15px; }
+    .sheet .comp b { font-size: 15px; }
+    .sheet .comp span { font-size: 13px; display: block; }
+    .sheet .group h2 { font-size: 15px; }
+    .g { display: grid; gap: 12px; }
+    .clients { grid-template-columns: 1fr; }
+    .entry { grid-template-columns: 1.1fr 2.2fr; }
+    .svcs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .infra { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .comp { min-height: 72px; }
+    .group {
+      border: 1.5px dashed var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fbfdff;
+    }
+    .group h2 { margin: 0 0 10px; font-size: 13px; color: var(--accent); text-align: center; }
+  </style>
+</head>
+<body>
+<div class="sheet">
+  <h1>UML-диаграмма компонентов</h1>
+  <div class="g">
+    <div class="group">
+      <h2>Клиент</h2>
+      <div class="comp"><div class="tab"></div><b>React SPA</b><span>кабинеты ролей, OIDC PKCE</span></div>
+    </div>
+    <div class="group">
+      <h2>Вход и идентификация</h2>
+      <div class="svcs" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="comp"><div class="tab"></div><b>Gateway (YARP)</b><span>единая точка /api</span></div>
+        <div class="comp"><div class="tab"></div><b>Auth</b><span>регистрация, /api/users</span></div>
+        <div class="comp"><div class="tab"></div><b>Keycloak</b><span>OIDC, JWT, realm-роли</span></div>
+      </div>
+    </div>
+    <div class="group">
+      <h2>Выделенные сервисы и монолит</h2>
+      <div class="svcs">
+        <div class="comp"><div class="tab"></div><b>Catalog</b><span>товары, прайсы, скидки, Outbox</span></div>
+        <div class="comp"><div class="tab"></div><b>Quoting</b><span>спецификации, генератор КП</span></div>
+        <div class="comp"><div class="tab"></div><b>Matching</b><span>ML-подбор: TF-IDF, логрегрессия</span></div>
+        <div class="comp"><div class="tab"></div><b>Commercial</b><span>согласование, счета NOC</span></div>
+        <div class="comp"><div class="tab"></div><b>Ordering</b><span>заказы-снимки</span></div>
+        <div class="comp"><div class="tab"></div><b>Logistics</b><span>приёмка, шлюзы 1С/WMS</span></div>
+        <div class="comp"><div class="tab"></div><b>Notifications</b><span>колокольчик, SMTP</span></div>
+        <div class="comp"><div class="tab"></div><b>Retail</b><span>витрины B2C, съём цен</span></div>
+        <div class="comp"><div class="tab"></div><b>Api (монолит)</b><span>проекты, поиск, аудит, аналитика</span></div>
+        <div class="comp"><div class="tab"></div><b>Worker</b><span>индексация Meilisearch</span></div>
+      </div>
+    </div>
+    <div class="group">
+      <h2>Инфраструктура</h2>
+      <div class="infra">
+        <div class="comp white"><div class="tab"></div><b>PostgreSQL</b><span>схемы сервисов</span></div>
+        <div class="comp white"><div class="tab"></div><b>NATS JetStream</b><span>события, повтор</span></div>
+        <div class="comp white"><div class="tab"></div><b>Meilisearch</b><span>fuzzy-индекс</span></div>
+        <div class="comp white"><div class="tab"></div><b>MailHog</b><span>SMTP стенда</span></div>
+        <div class="comp white"><div class="tab"></div><b>Grafana LGTM</b><span>логи, трассы, метрики</span></div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Сплошные компоненты — процессы Compose. Шлюз маршрутизирует префиксы в сервисы; остальной /api обслуживает монолит (catch-all).</p>
+</div>
+</body>
+</html>

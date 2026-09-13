@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    /* Узкий лист: рисунок печатается на 160 мм. */
+    .sheet { width: 1100px; }
+    .people, .exts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 16px;
+      align-items: start;
+    }
+    .cell { min-width: 0; }
+    .cell .box { overflow-wrap: break-word; font-size: 15px; }
+    .sys {
+      border: 2.5px solid var(--accent);
+      border-radius: 14px;
+      background: #f7fafc;
+      padding: 16px 18px;
+      margin: 16px 0;
+    }
+    .sys h2 { margin: 0 0 12px; text-align: center; color: var(--accent); font-size: 16px; }
+    .inner { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .inner .box { font-size: 14px; }
+    .label { text-align: center; font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+    .note { font-size: 13px; }
+  </style>
+</head>
+<body>
+<div class="sheet">
+  <h1>Контекстная диаграмма границ решения</h1>
+  <div class="people">
+    <div class="cell">
+      <div class="box actor">Руководитель проекта</div>
+      <div class="label">прайсы, спецификация, КП, заказ</div>
+    </div>
+    <div class="cell">
+      <div class="box actor">Коммерческий блок</div>
+      <div class="label">наценка, решение по КП</div>
+    </div>
+    <div class="cell">
+      <div class="box actor">Бухгалтерия</div>
+      <div class="label">стадии оплаты, вложения</div>
+    </div>
+    <div class="cell">
+      <div class="box actor">Склад</div>
+      <div class="label">приёмка факт / план</div>
+    </div>
+  </div>
+  <div class="sys">
+    <h2>Система подбора оборудования и формирования КП<br><span class="small muted">внутри границы решения</span></h2>
+    <div class="inner">
+      <div class="box small">Каталог, офферы, история цен</div>
+      <div class="box small">Импорт Excel, архив загрузок</div>
+      <div class="box small">Сопоставление и генератор КП</div>
+      <div class="box small">Согласование, счёт NOC, заказ</div>
+      <div class="box small">Резерв остатка, приёмка</div>
+      <div class="box small">RBAC, аудит, уведомления</div>
+    </div>
+    <p class="note">Вне границы: бухгалтерский учёт, складская WMS, внешний корпоративный NOC, AD/LDAP как отдельный каталог, мобильное приложение</p>
+  </div>
+  <div class="exts">
+    <div class="cell">
+      <div class="box">Файлы Excel поставщиков</div>
+      <div class="label">вход: .xlsx / .xls</div>
+    </div>
+    <div class="cell">
+      <div class="box warn">1С (шлюз, на стенде мок)</div>
+      <div class="label">выход: документ приёмки</div>
+    </div>
+    <div class="cell">
+      <div class="box warn">WMS (шлюз, на стенде мок)</div>
+      <div class="label">выход: складская ссылка</div>
+    </div>
+    <div class="cell">
+      <div class="box">Keycloak / SMTP</div>
+      <div class="label">идентификация и письма</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
